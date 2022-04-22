@@ -319,9 +319,9 @@ func (m CertManager) IssueCertificate(cn string, validityPeriod time.Duration, d
 		ObjectMeta: metav1.ObjectMeta{
 			GenerateName: "cr-",
 			Namespace:    commons.DefaultFlomeshNamespace,
-			Annotations: map[string]string{
-				certmgr.CertificateRequestPrivateKeyAnnotationKey: commons.DefaultCABundleName,
-			},
+			//Annotations: map[string]string{
+			//	certmgr.CertificateRequestPrivateKeyAnnotationKey: commons.DefaultCABundleName,
+			//},
 		},
 		Spec: certmgr.CertificateRequestSpec{
 			Request: pemCSR,
