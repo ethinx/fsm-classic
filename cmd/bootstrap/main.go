@@ -91,10 +91,11 @@ func main() {
 
 	wait.PollImmediate(5*time.Second, 60*time.Second, func() (bool, error) {
 		if repoClient.IsRepoUp() {
+			klog.V(2).Info("Repo is READY!")
 			return true, nil
 		}
 
-		klog.V(3).Info("Repo is not up, sleeping ...")
+		klog.V(2).Info("Repo is not up, sleeping ...")
 		return false, nil
 	})
 
