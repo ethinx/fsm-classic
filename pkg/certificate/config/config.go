@@ -77,7 +77,7 @@ func (c *Config) getArchonCertificateManager() (certificate.Manager, error) {
 }
 
 func (c *Config) getCertManagerCertificateManager() (certificate.Manager, error) {
-	client := certmanager.NewClient(c.k8sApi)
+	client := certmanager.NewClient(c.k8sApi, commons.DefaultFlomeshNamespace)
 
 	rootCert, err := certmanager.NewRootCA(
 		client,
@@ -144,7 +144,7 @@ func (c *Config) getOrSaveCertificate(ns string, secretName string, cert *certif
 	return &certificate.Certificate{
 		CommonName:   x509Cert.Subject.CommonName,
 		SerialNumber: x509Cert.SerialNumber.String(),
-		RootCA:       pemCACrt,
+		CA:           pemCACrt,
 		CrtPEM:       pemCACrt,
 		KeyPEM:       pemCAKey,
 		Expiration:   x509Cert.NotAfter,

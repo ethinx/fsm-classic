@@ -30,6 +30,7 @@ import (
 	certmgrclient "github.com/jetstack/cert-manager/pkg/client/clientset/versioned"
 	certmgrlister "github.com/jetstack/cert-manager/pkg/client/listers/certmanager/v1"
 	"k8s.io/client-go/kubernetes"
+	"time"
 )
 
 const (
@@ -38,9 +39,13 @@ const (
 	IssuerKind            = "Issuer"
 	IssuerGroup           = "cert-manager.io"
 	CertManagerRootCAName = "flomesh-root-ca"
+
+	DefaultPollInterval = 1 * time.Second
+	DefaultPollTimeout  = 60 * time.Second
 )
 
 type Client struct {
+	ns                       string // namespace
 	cmClient                 certmgrclient.Interface
 	kubeClient               kubernetes.Interface
 	certificateRequestLister certmgrlister.CertificateRequestNamespaceLister

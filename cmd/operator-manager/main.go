@@ -223,7 +223,7 @@ func createWebhookConfigurations(k8sApi *kube.K8sAPI, configStore *cfghandler.St
 		os.Exit(1)
 	}
 
-	caBundle := cert.RootCA
+	caBundle := cert.CA
 	webhooks.RegisterWebhooks(caBundle)
 	if configStore.MeshConfig.GatewayApiEnabled {
 		webhooks.RegisterGatewayApiWebhooks(caBundle)
@@ -304,7 +304,7 @@ func issueCertForWebhook(certMgr certificate.Manager) (*certificate.Certificate,
 	}
 
 	certFiles := map[string][]byte{
-		commons.RootCACertName:    cert.RootCA,
+		commons.RootCACertName:    cert.CA,
 		commons.TLSCertName:       cert.CrtPEM,
 		commons.TLSPrivateKeyName: cert.KeyPEM,
 	}
