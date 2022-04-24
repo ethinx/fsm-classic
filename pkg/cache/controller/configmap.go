@@ -30,6 +30,7 @@ import (
 	corev1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/util/runtime"
 	coreinformers "k8s.io/client-go/informers/core/v1"
+	"k8s.io/client-go/listers/core/v1"
 	"k8s.io/client-go/tools/cache"
 	"k8s.io/klog/v2"
 	"time"
@@ -44,18 +45,19 @@ type ConfigMapHandler interface {
 
 type ConfigMapController struct {
 	Informer     cache.SharedIndexInformer
-	Lister       ConfigMapLister
+	Store        ConfigMapStore
 	HasSynced    cache.InformerSynced
+	Lister       v1.ConfigMapLister
 	eventHandler ConfigMapHandler
 }
 
 type ConfigMapFilterFunc func(obj interface{}) bool
 
-type ConfigMapLister struct {
+type ConfigMapStore struct {
 	cache.Store
 }
 
-func (l *ConfigMapLister) ByKey(key string) (*corev1.ConfigMap, error) {
+func (l *ConfigMapStore) ByKey(key string) (*corev1.ConfigMap, error) {
 	s, exists, err := l.GetByKey(key)
 	if err != nil {
 		return nil, err
@@ -72,7 +74,8 @@ func NewConfigMapControllerWithEventHandler(configmapInformer coreinformers.Conf
 	result := &ConfigMapController{
 		HasSynced: informer.HasSynced,
 		Informer:  informer,
-		Lister: ConfigMapLister{
+		Lister:    configmapInformer.Lister(),
+		Store: ConfigMapStore{
 			Store: informer.GetStore(),
 		},
 	}

@@ -31,6 +31,7 @@ import (
 	"k8s.io/klog/v2"
 	gwv1alpha2 "sigs.k8s.io/gateway-api/apis/v1alpha2"
 	gwinformerv1alpha2 "sigs.k8s.io/gateway-api/pkg/client/informers/gateway/externalversions/apis/v1alpha2"
+	gwlisterv1alpha2 "sigs.k8s.io/gateway-api/pkg/client/listers/gateway/apis/v1alpha2"
 	"time"
 )
 
@@ -43,16 +44,17 @@ type UDPRouteHandler interface {
 
 type UDPRouteController struct {
 	Informer     cache.SharedIndexInformer
-	Lister       UDPRouteLister
+	Store        UDPRouteStore
 	HasSynced    cache.InformerSynced
+	Lister       gwlisterv1alpha2.UDPRouteLister
 	eventHandler UDPRouteHandler
 }
 
-type UDPRouteLister struct {
+type UDPRouteStore struct {
 	cache.Store
 }
 
-func (l *UDPRouteLister) ByKey(key string) (*gwv1alpha2.UDPRoute, error) {
+func (l *UDPRouteStore) ByKey(key string) (*gwv1alpha2.UDPRoute, error) {
 	s, exists, err := l.GetByKey(key)
 	if err != nil {
 		return nil, err
@@ -69,7 +71,8 @@ func NewUDPRouteControllerWithEventHandler(udpRouteInformer gwinformerv1alpha2.U
 	result := &UDPRouteController{
 		HasSynced: informer.HasSynced,
 		Informer:  informer,
-		Lister: UDPRouteLister{
+		Lister:    udpRouteInformer.Lister(),
+		Store: UDPRouteStore{
 			Store: informer.GetStore(),
 		},
 	}

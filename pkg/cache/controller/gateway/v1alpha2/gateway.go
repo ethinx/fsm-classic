@@ -31,6 +31,7 @@ import (
 	"k8s.io/klog/v2"
 	gwv1alpha2 "sigs.k8s.io/gateway-api/apis/v1alpha2"
 	gwinformerv1alpha2 "sigs.k8s.io/gateway-api/pkg/client/informers/gateway/externalversions/apis/v1alpha2"
+	gwlisterv1alpha2 "sigs.k8s.io/gateway-api/pkg/client/listers/gateway/apis/v1alpha2"
 	"time"
 )
 
@@ -43,16 +44,17 @@ type GatewayHandler interface {
 
 type GatewayController struct {
 	Informer     cache.SharedIndexInformer
-	Lister       GatewayLister
+	Store        GatewayStore
 	HasSynced    cache.InformerSynced
+	Lister       gwlisterv1alpha2.GatewayLister
 	eventHandler GatewayHandler
 }
 
-type GatewayLister struct {
+type GatewayStore struct {
 	cache.Store
 }
 
-func (l *GatewayLister) ByKey(key string) (*gwv1alpha2.Gateway, error) {
+func (l *GatewayStore) ByKey(key string) (*gwv1alpha2.Gateway, error) {
 	s, exists, err := l.GetByKey(key)
 	if err != nil {
 		return nil, err
@@ -69,7 +71,8 @@ func NewGatewayControllerWithEventHandler(gatewayInformer gwinformerv1alpha2.Gat
 	result := &GatewayController{
 		HasSynced: informer.HasSynced,
 		Informer:  informer,
-		Lister: GatewayLister{
+		Lister:    gatewayInformer.Lister(),
+		Store: GatewayStore{
 			Store: informer.GetStore(),
 		},
 	}

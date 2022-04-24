@@ -29,6 +29,7 @@ import (
 	corev1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/util/runtime"
 	coreinformers "k8s.io/client-go/informers/core/v1"
+	"k8s.io/client-go/listers/core/v1"
 	"k8s.io/client-go/tools/cache"
 	"k8s.io/klog/v2"
 	"time"
@@ -43,16 +44,17 @@ type EndpointsHandler interface {
 
 type EndpointsController struct {
 	Informer     cache.SharedIndexInformer
-	Lister       EndpointLister
+	Store        EndpointStore
 	HasSynced    cache.InformerSynced
+	Lister       v1.EndpointsLister
 	eventHandler EndpointsHandler
 }
 
-type EndpointLister struct {
+type EndpointStore struct {
 	cache.Store
 }
 
-func (l *EndpointLister) ByKey(key string) (*corev1.Endpoints, error) {
+func (l *EndpointStore) ByKey(key string) (*corev1.Endpoints, error) {
 	s, exists, err := l.GetByKey(key)
 	if err != nil {
 		return nil, err
@@ -69,7 +71,8 @@ func NewEndpointsControllerWithEventHandler(endpointsInformer coreinformers.Endp
 	result := &EndpointsController{
 		HasSynced: informer.HasSynced,
 		Informer:  informer,
-		Lister: EndpointLister{
+		Lister:    endpointsInformer.Lister(),
+		Store: EndpointStore{
 			Store: informer.GetStore(),
 		},
 	}

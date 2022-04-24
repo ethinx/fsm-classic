@@ -29,6 +29,7 @@ import (
 	corev1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/util/runtime"
 	coreinformers "k8s.io/client-go/informers/core/v1"
+	"k8s.io/client-go/listers/core/v1"
 	"k8s.io/client-go/tools/cache"
 	"k8s.io/klog/v2"
 	"time"
@@ -43,16 +44,17 @@ type ServiceHandler interface {
 
 type ServiceController struct {
 	Informer     cache.SharedIndexInformer
-	Lister       ServiceLister
+	Store        ServiceStore
 	HasSynced    cache.InformerSynced
+	Lister       v1.ServiceLister
 	eventHandler ServiceHandler
 }
 
-type ServiceLister struct {
+type ServiceStore struct {
 	cache.Store
 }
 
-func (l *ServiceLister) ByKey(key string) (*corev1.Service, error) {
+func (l *ServiceStore) ByKey(key string) (*corev1.Service, error) {
 	s, exists, err := l.GetByKey(key)
 	if err != nil {
 		return nil, err
@@ -69,7 +71,8 @@ func NewServiceControllerWithEventHandler(serviceInformer coreinformers.ServiceI
 	result := &ServiceController{
 		HasSynced: informer.HasSynced,
 		Informer:  informer,
-		Lister: ServiceLister{
+		Lister:    serviceInformer.Lister(),
+		Store: ServiceStore{
 			Store: informer.GetStore(),
 		},
 	}

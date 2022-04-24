@@ -297,7 +297,7 @@ func (ict *IngressChangeTracker) findService(namespace string, service *networki
 	svcName := fmt.Sprintf("%s/%s", namespace, service.Name)
 
 	// first, find in local store
-	svc, exists, err := ict.controllers.Service.Lister.GetByKey(svcName)
+	svc, exists, err := ict.controllers.Service.Store.GetByKey(svcName)
 	if err != nil {
 		return nil, err
 	}

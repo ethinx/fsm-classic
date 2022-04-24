@@ -29,6 +29,7 @@ import (
 	networkingv1 "k8s.io/api/networking/v1"
 	"k8s.io/apimachinery/pkg/util/runtime"
 	networkingv1informers "k8s.io/client-go/informers/networking/v1"
+	networkingv1lister "k8s.io/client-go/listers/networking/v1"
 	"k8s.io/client-go/tools/cache"
 	"k8s.io/klog/v2"
 	"time"
@@ -43,16 +44,17 @@ type Ingressv1Handler interface {
 
 type Ingressv1Controller struct {
 	Informer     cache.SharedIndexInformer
-	Lister       Ingressv1Lister
+	Store        Ingressv1Store
 	HasSynced    cache.InformerSynced
+	Lister       networkingv1lister.IngressLister
 	eventHandler Ingressv1Handler
 }
 
-type Ingressv1Lister struct {
+type Ingressv1Store struct {
 	cache.Store
 }
 
-func (l *Ingressv1Lister) ByKey(key string) (*networkingv1.Ingress, error) {
+func (l *Ingressv1Store) ByKey(key string) (*networkingv1.Ingress, error) {
 	s, exists, err := l.GetByKey(key)
 	if err != nil {
 		return nil, err
@@ -69,7 +71,8 @@ func NewIngressv1ControllerWithEventHandler(ingressInformer networkingv1informer
 	result := &Ingressv1Controller{
 		HasSynced: informer.HasSynced,
 		Informer:  informer,
-		Lister: Ingressv1Lister{
+		Lister:    ingressInformer.Lister(),
+		Store: Ingressv1Store{
 			Store: informer.GetStore(),
 		},
 	}

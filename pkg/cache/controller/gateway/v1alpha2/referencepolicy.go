@@ -31,6 +31,7 @@ import (
 	"k8s.io/klog/v2"
 	gwv1alpha2 "sigs.k8s.io/gateway-api/apis/v1alpha2"
 	gwinformerv1alpha2 "sigs.k8s.io/gateway-api/pkg/client/informers/gateway/externalversions/apis/v1alpha2"
+	gwlisterv1alpha2 "sigs.k8s.io/gateway-api/pkg/client/listers/gateway/apis/v1alpha2"
 	"time"
 )
 
@@ -43,16 +44,17 @@ type ReferencePolicyHandler interface {
 
 type ReferencePolicyController struct {
 	Informer     cache.SharedIndexInformer
-	Lister       ReferencePolicyLister
+	Store        ReferencePolicyStore
 	HasSynced    cache.InformerSynced
+	Lister       gwlisterv1alpha2.ReferencePolicyLister
 	eventHandler ReferencePolicyHandler
 }
 
-type ReferencePolicyLister struct {
+type ReferencePolicyStore struct {
 	cache.Store
 }
 
-func (l *ReferencePolicyLister) ByKey(key string) (*gwv1alpha2.ReferencePolicy, error) {
+func (l *ReferencePolicyStore) ByKey(key string) (*gwv1alpha2.ReferencePolicy, error) {
 	s, exists, err := l.GetByKey(key)
 	if err != nil {
 		return nil, err
@@ -69,7 +71,8 @@ func NewReferencePolicyControllerWithEventHandler(referencePolicyInformer gwinfo
 	result := &ReferencePolicyController{
 		HasSynced: informer.HasSynced,
 		Informer:  informer,
-		Lister: ReferencePolicyLister{
+		Lister:    referencePolicyInformer.Lister(),
+		Store: ReferencePolicyStore{
 			Store: informer.GetStore(),
 		},
 	}

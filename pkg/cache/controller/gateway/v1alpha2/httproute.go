@@ -31,6 +31,7 @@ import (
 	"k8s.io/klog/v2"
 	gwv1alpha2 "sigs.k8s.io/gateway-api/apis/v1alpha2"
 	gwinformerv1alpha2 "sigs.k8s.io/gateway-api/pkg/client/informers/gateway/externalversions/apis/v1alpha2"
+	gwlisterv1alpha2 "sigs.k8s.io/gateway-api/pkg/client/listers/gateway/apis/v1alpha2"
 	"time"
 )
 
@@ -43,16 +44,17 @@ type HTTPRouteHandler interface {
 
 type HTTPRouteController struct {
 	Informer     cache.SharedIndexInformer
-	Lister       HTTPRouteLister
+	Store        HTTPRouteStore
 	HasSynced    cache.InformerSynced
+	Lister       gwlisterv1alpha2.HTTPRouteLister
 	eventHandler HTTPRouteHandler
 }
 
-type HTTPRouteLister struct {
+type HTTPRouteStore struct {
 	cache.Store
 }
 
-func (l *HTTPRouteLister) ByKey(key string) (*gwv1alpha2.HTTPRoute, error) {
+func (l *HTTPRouteStore) ByKey(key string) (*gwv1alpha2.HTTPRoute, error) {
 	s, exists, err := l.GetByKey(key)
 	if err != nil {
 		return nil, err
@@ -69,7 +71,8 @@ func NewHTTPRouteControllerWithEventHandler(httpRouteInformer gwinformerv1alpha2
 	result := &HTTPRouteController{
 		HasSynced: informer.HasSynced,
 		Informer:  informer,
-		Lister: HTTPRouteLister{
+		Lister:    httpRouteInformer.Lister(),
+		Store: HTTPRouteStore{
 			Store: informer.GetStore(),
 		},
 	}

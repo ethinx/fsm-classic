@@ -31,6 +31,7 @@ import (
 	"k8s.io/klog/v2"
 	gwv1alpha2 "sigs.k8s.io/gateway-api/apis/v1alpha2"
 	gwinformerv1alpha2 "sigs.k8s.io/gateway-api/pkg/client/informers/gateway/externalversions/apis/v1alpha2"
+	gwlisterv1alpha2 "sigs.k8s.io/gateway-api/pkg/client/listers/gateway/apis/v1alpha2"
 	"time"
 )
 
@@ -43,16 +44,17 @@ type TCPRouteHandler interface {
 
 type TCPRouteController struct {
 	Informer     cache.SharedIndexInformer
-	Lister       TCPRouteLister
+	Store        TCPRouteStore
 	HasSynced    cache.InformerSynced
+	Lister       gwlisterv1alpha2.TCPRouteLister
 	eventHandler TCPRouteHandler
 }
 
-type TCPRouteLister struct {
+type TCPRouteStore struct {
 	cache.Store
 }
 
-func (l *TCPRouteLister) ByKey(key string) (*gwv1alpha2.TCPRoute, error) {
+func (l *TCPRouteStore) ByKey(key string) (*gwv1alpha2.TCPRoute, error) {
 	s, exists, err := l.GetByKey(key)
 	if err != nil {
 		return nil, err
@@ -69,7 +71,8 @@ func NewTCPRouteControllerWithEventHandler(tcpRouteInformer gwinformerv1alpha2.T
 	result := &TCPRouteController{
 		HasSynced: informer.HasSynced,
 		Informer:  informer,
-		Lister: TCPRouteLister{
+		Lister:    tcpRouteInformer.Lister(),
+		Store: TCPRouteStore{
 			Store: informer.GetStore(),
 		},
 	}

@@ -31,6 +31,7 @@ import (
 	"k8s.io/klog/v2"
 	gwv1alpha2 "sigs.k8s.io/gateway-api/apis/v1alpha2"
 	gwinformerv1alpha2 "sigs.k8s.io/gateway-api/pkg/client/informers/gateway/externalversions/apis/v1alpha2"
+	gwlisterv1alpha2 "sigs.k8s.io/gateway-api/pkg/client/listers/gateway/apis/v1alpha2"
 	"time"
 )
 
@@ -43,16 +44,17 @@ type TLSRouteHandler interface {
 
 type TLSRouteController struct {
 	Informer     cache.SharedIndexInformer
-	Lister       TLSRouteLister
+	Store        TLSRouteStore
 	HasSynced    cache.InformerSynced
+	Lister       gwlisterv1alpha2.TLSRouteLister
 	eventHandler TLSRouteHandler
 }
 
-type TLSRouteLister struct {
+type TLSRouteStore struct {
 	cache.Store
 }
 
-func (l *TLSRouteLister) ByKey(key string) (*gwv1alpha2.TLSRoute, error) {
+func (l *TLSRouteStore) ByKey(key string) (*gwv1alpha2.TLSRoute, error) {
 	s, exists, err := l.GetByKey(key)
 	if err != nil {
 		return nil, err
@@ -69,7 +71,8 @@ func NewTLSRouteControllerWithEventHandler(tlsRouteInformer gwinformerv1alpha2.T
 	result := &TLSRouteController{
 		HasSynced: informer.HasSynced,
 		Informer:  informer,
-		Lister: TLSRouteLister{
+		Lister:    tlsRouteInformer.Lister(),
+		Store: TLSRouteStore{
 			Store: informer.GetStore(),
 		},
 	}
