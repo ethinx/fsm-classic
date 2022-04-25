@@ -32,7 +32,6 @@ import (
 	gatewayv1alpha2 "github.com/flomesh-io/traffic-guru/controllers/gateway/v1alpha2"
 	proxyprofilev1alpha1 "github.com/flomesh-io/traffic-guru/controllers/proxyprofile/v1alpha1"
 	flomeshadmission "github.com/flomesh-io/traffic-guru/pkg/admission"
-	"github.com/flomesh-io/traffic-guru/pkg/aggregator"
 	"github.com/flomesh-io/traffic-guru/pkg/certificate"
 	certificateconfig "github.com/flomesh-io/traffic-guru/pkg/certificate/config"
 	"github.com/flomesh-io/traffic-guru/pkg/commons"
@@ -93,6 +92,12 @@ func init() {
 	//+kubebuilder:scaffold:scheme
 }
 
+type startArgs struct {
+	managerConfigFile string
+	repoAddr          string
+	aggregatorPort    int
+}
+
 // +kubebuilder:rbac:groups=admissionregistration.k8s.io,resources=mutatingwebhookconfigurations,verbs=get;list;watch;create;update;patch;delete
 // +kubebuilder:rbac:groups=admissionregistration.k8s.io,resources=validatingwebhookconfigurations,verbs=get;list;watch;create;update;patch;delete
 // +kubebuilder:rbac:groups=cert-manager.io,resources=certificaterequests,verbs=get;list;watch;create;delete
@@ -101,8 +106,8 @@ func init() {
 
 func main() {
 	// process CLI arguments and parse them to flags
-	managerConfigFile, repoAddr, aggregatorPort := processFlags()
-	options := loadManagerOptions(managerConfigFile)
+	args := processFlags()
+	options := loadManagerOptions(args.managerConfigFile)
 
 	klog.Infof(commons.AppVersionTemplate, version.Version, version.ImageVersion, version.GitVersion, version.GitCommit, version.BuildDate)
 
@@ -135,20 +140,15 @@ func main() {
 	//+kubebuilder:scaffold:builder
 
 	// start the controller manager
-	startManager(mgr, repoAddr, aggregatorPort)
+	startManager(mgr)
 }
 
-func processFlags() (string, string, int) {
-	var configFile, repoAddr string
-	var aggregatorPort int
+func processFlags() *startArgs {
+	var configFile string
 	flag.StringVar(&configFile, "config", "manager_config.yaml",
 		"The controller will load its initial configuration from this file. "+
 			"Omit this flag to use the default configuration values. "+
 			"Command-line flags override configuration from this file.")
-	flag.IntVar(&aggregatorPort, "aggregator-port", 6767,
-		"The listening port of service aggregator.")
-	flag.StringVar(&repoAddr, "repo-addr", "repo-service.flomesh.svc:6060",
-		"The address of repo service.")
 
 	klog.InitFlags(nil)
 	pflag.CommandLine.AddGoFlagSet(flag.CommandLine)
@@ -156,7 +156,9 @@ func processFlags() (string, string, int) {
 	rand.Seed(time.Now().UnixNano())
 	ctrl.SetLogger(klogr.New())
 
-	return configFile, repoAddr, aggregatorPort
+	return &startArgs{
+		managerConfigFile: configFile,
+	}
 }
 
 func loadManagerOptions(configFile string) ctrl.Options {
@@ -576,18 +578,7 @@ func addLivenessAndReadinessCheck(mgr manager.Manager) {
 	}
 }
 
-func startManager(mgr manager.Manager, repoAddr string, aggregatorPort int) {
-	err := mgr.Add(manager.RunnableFunc(func(context.Context) error {
-		return aggregator.NewAggregator(
-			fmt.Sprintf(":%d", aggregatorPort),
-			repoAddr,
-		).Run()
-	}))
-	if err != nil {
-		klog.Error(err, "unable add aggregator server to the manager")
-		os.Exit(1)
-	}
-
+func startManager(mgr manager.Manager) {
 	klog.Info("starting manager")
 	if err := mgr.Start(ctrl.SetupSignalHandler()); err != nil {
 		klog.Fatalf("problem running manager, %s", err.Error())

@@ -1307,7 +1307,7 @@ kind: Service
 metadata:
   labels:
     app.kubernetes.io/component: repo
-    app.kubernetes.io/instance: mesh-repo
+    app.kubernetes.io/instance: repo
     app.kubernetes.io/name: traffic-guru
     app.kubernetes.io/version: v0.1.1-alpha2-dev
   name: repo-service
@@ -1319,15 +1319,15 @@ spec:
     protocol: TCP
     targetPort: repo
   selector:
-    app.kubernetes.io/component: bootstrap
-    app.kubernetes.io/instance: bootstrap
+    app.kubernetes.io/component: repo
+    app.kubernetes.io/instance: repo
 ---
 apiVersion: v1
 kind: Service
 metadata:
   labels:
     app.kubernetes.io/component: service-aggregator
-    app.kubernetes.io/instance: operator-manager
+    app.kubernetes.io/instance: bootstrap
     app.kubernetes.io/name: traffic-guru
     app.kubernetes.io/version: v0.1.1-alpha2-dev
   name: service-aggregator
@@ -1339,8 +1339,8 @@ spec:
     protocol: TCP
     targetPort: aggregator
   selector:
-    app.kubernetes.io/component: manager
-    app.kubernetes.io/instance: operator-manager
+    app.kubernetes.io/component: bootstrap
+    app.kubernetes.io/instance: bootstrap
 ---
 apiVersion: v1
 kind: Service
@@ -1386,52 +1386,47 @@ spec:
       containers:
       - args:
         - --v=5
+        - --repo-host=repo-service.flomesh.svc
+        - --repo-port=6060
+        - --aggregator-port=6767
         image: flomesh/traffic-guru-bootstrap:dev
         imagePullPolicy: Always
         livenessProbe:
-          httpGet:
-            path: /healthz
-            port: 8081
-          initialDelaySeconds: 15
-          periodSeconds: 20
-        name: bootstrap
-        readinessProbe:
-          httpGet:
-            path: /readyz
-            port: 8081
-          initialDelaySeconds: 5
+          initialDelaySeconds: 10
           periodSeconds: 10
-        resources:
-          limits:
-            cpu: 500m
-            memory: 100Mi
-          requests:
-            cpu: 100m
-            memory: 20Mi
-        volumeMounts:
-        - mountPath: /repo
-          name: shared-repo
-      - command:
-        - sh
-        - -c
-        - |
-          /usr/local/bin/pipy --admin-port=6060
-        image: flomesh/pipy:0.30.0-100
-        imagePullPolicy: Always
-        name: repo
+          tcpSocket:
+            port: 6767
+        name: bootstrap
         ports:
-        - containerPort: 6060
-          name: repo
-        - containerPort: 8081
-          name: health
+        - containerPort: 6767
+          name: aggregator
+        readinessProbe:
+          initialDelaySeconds: 30
+          periodSeconds: 20
+          tcpSocket:
+            port: 6767
         resources:
           limits:
             cpu: 1000m
-            memory: 500Mi
+            memory: 1000Mi
           requests:
-            cpu: 100m
-            memory: 20M
+            cpu: 200m
+            memory: 200Mi
+        volumeMounts:
+        - mountPath: /repo
+          name: shared-repo
       initContainers:
+      - command:
+        - bash
+        - -c
+        - |
+          /wait-for-it.sh --strict --timeout=0 \
+            --host=repo-service.flomesh.svc \
+            --port=6060 \
+            -- echo "REPO IS READY!"
+        image: flomesh/wait-for-it:1.0.0
+        imagePullPolicy: IfNotPresent
+        name: wait-repo
       - command:
         - sh
         - -c
@@ -1447,7 +1442,7 @@ spec:
         - mountPath: /repo
           name: shared-repo
       serviceAccountName: traffic-guru
-      terminationGracePeriodSeconds: 10
+      terminationGracePeriodSeconds: 30
       volumes:
       - configMap:
           name: repo-init-scripts
@@ -1485,17 +1480,13 @@ spec:
       containers:
       - args:
         - --v=5
-        env:
-        - name: INGRESS_CODEBASE_PATH
-          value: /default/default/default/local/ingress/
         image: flomesh/traffic-guru-ingress-pipy:dev
         imagePullPolicy: Always
         livenessProbe:
-          httpGet:
-            path: /healthz
-            port: 8081
-          initialDelaySeconds: 15
-          periodSeconds: 20
+          initialDelaySeconds: 10
+          periodSeconds: 10
+          tcpSocket:
+            port: 8000
         name: ingress
         ports:
         - containerPort: 8000
@@ -1503,11 +1494,10 @@ spec:
         - containerPort: 8081
           name: health
         readinessProbe:
-          httpGet:
-            path: /readyz
-            port: 8081
-          initialDelaySeconds: 5
-          periodSeconds: 10
+          initialDelaySeconds: 30
+          periodSeconds: 20
+          tcpSocket:
+            port: 8000
         securityContext:
           capabilities:
             add:
@@ -1577,8 +1567,6 @@ spec:
       - args:
         - --v=5
         - --config=manager_config.yaml
-        - --repo-addr=repo-service.flomesh.svc:6060
-        - --aggregator-port=6767
         command:
         - /operator-manager
         image: flomesh/traffic-guru-operator-manager:dev
@@ -1591,8 +1579,6 @@ spec:
           periodSeconds: 20
         name: manager
         ports:
-        - containerPort: 6767
-          name: aggregator
         - containerPort: 9443
           name: webhook
         - containerPort: 8081
@@ -1616,24 +1602,66 @@ spec:
         - mountPath: /manager_config.yaml
           name: manager-config
           subPath: manager_config.yaml
-      initContainers:
-      - command:
-        - bash
-        - -c
-        - |
-          /wait-for-it.sh --strict --timeout=0 \
-            --host=repo-service.flomesh.svc \
-            --port=6060 \
-            -- echo "REPO IS READY!"
-        image: flomesh/wait-for-it:1.0.0
-        imagePullPolicy: IfNotPresent
-        name: init
       serviceAccountName: traffic-guru
-      terminationGracePeriodSeconds: 10
+      terminationGracePeriodSeconds: 30
       volumes:
       - configMap:
           name: manager-config
         name: manager-config
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  labels:
+    app.kubernetes.io/component: repo
+    app.kubernetes.io/instance: repo
+    app.kubernetes.io/name: traffic-guru
+    app.kubernetes.io/version: v0.1.1-alpha2-dev
+  name: repo
+  namespace: flomesh
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app.kubernetes.io/component: repo
+      app.kubernetes.io/instance: repo
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/component: repo
+        app.kubernetes.io/instance: repo
+    spec:
+      containers:
+      - command:
+        - sh
+        - -c
+        - |
+          /usr/local/bin/pipy --admin-port=6060
+        image: flomesh/pipy:0.30.0-100
+        imagePullPolicy: IfNotPresent
+        livenessProbe:
+          initialDelaySeconds: 10
+          periodSeconds: 10
+          tcpSocket:
+            port: 6060
+        name: repo
+        ports:
+        - containerPort: 6060
+          name: repo
+        readinessProbe:
+          initialDelaySeconds: 30
+          periodSeconds: 20
+          tcpSocket:
+            port: 6060
+        resources:
+          limits:
+            cpu: 1000m
+            memory: 500Mi
+          requests:
+            cpu: 100m
+            memory: 20M
+      serviceAccountName: traffic-guru
+      terminationGracePeriodSeconds: 30
 ---
 apiVersion: batch/v1
 kind: Job
@@ -1682,6 +1710,17 @@ spec:
         image: flomesh/wait-for-it:1.0.0
         imagePullPolicy: IfNotPresent
         name: wait-manager
+      - command:
+        - bash
+        - -c
+        - |
+          /wait-for-it.sh --strict --timeout=0 \
+            --host=service-aggregator.flomesh.svc \
+            --port=6767 \
+            -- echo "AGGREGATOR IS READY!"
+        image: flomesh/wait-for-it:1.0.0
+        imagePullPolicy: IfNotPresent
+        name: wait-aggregator
       restartPolicy: Never
       serviceAccountName: traffic-guru
       volumes:

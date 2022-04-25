@@ -4,7 +4,7 @@ metadata:
   name: repo-service
   namespace: flomesh
   labels:
-    app.kubernetes.io/instance: mesh-repo
+    app.kubernetes.io/instance: repo
     app.kubernetes.io/component: repo
 spec:
   ports:
@@ -13,5 +13,5 @@ spec:
     targetPort: repo
     protocol: TCP
   selector:
-    app.kubernetes.io/instance: bootstrap
-    app.kubernetes.io/component: bootstrap
+    app.kubernetes.io/instance: repo
+    app.kubernetes.io/component: repo
