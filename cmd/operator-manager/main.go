@@ -223,10 +223,12 @@ func createWebhookConfigurations(k8sApi *kube.K8sAPI, configStore *cfghandler.St
 		os.Exit(1)
 	}
 
+	ns := commons.DefaultFlomeshNamespace
+	svcName := commons.DefaultWebhookServiceName
 	caBundle := cert.CA
-	webhooks.RegisterWebhooks(caBundle)
+	webhooks.RegisterWebhooks(ns, svcName, caBundle)
 	if configStore.MeshConfig.GatewayApiEnabled {
-		webhooks.RegisterGatewayApiWebhooks(caBundle)
+		webhooks.RegisterGatewayApiWebhooks(ns, svcName, caBundle)
 	}
 
 	// Mutating

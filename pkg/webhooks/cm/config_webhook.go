@@ -50,7 +50,7 @@ const (
 	vwName = "vconfigmap.kb.flomesh.io"
 )
 
-func RegisterWebhooks(caBundle []byte) {
+func RegisterWebhooks(webhookSvcNs, webhookSvcName string, caBundle []byte) {
 	rule := flomeshadmission.NewRule(
 		[]admissionregv1.OperationType{admissionregv1.Create, admissionregv1.Update},
 		[]string{groups},
@@ -66,6 +66,8 @@ func RegisterWebhooks(caBundle []byte) {
 
 	mutatingWebhook := flomeshadmission.NewMutatingWebhook(
 		mwName,
+		webhookSvcNs,
+		webhookSvcName,
 		mwPath,
 		caBundle,
 		nsSelector,
@@ -74,6 +76,8 @@ func RegisterWebhooks(caBundle []byte) {
 
 	validatingWebhook := flomeshadmission.NewValidatingWebhook(
 		vwName,
+		webhookSvcNs,
+		webhookSvcName,
 		vwPath,
 		caBundle,
 		nsSelector,
