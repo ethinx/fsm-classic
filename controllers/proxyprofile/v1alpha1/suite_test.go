@@ -22,7 +22,7 @@
  * SOFTWARE.
  */
 
-package proxyprofile
+package v1alpha1
 
 import (
 	pfv1alpha1 "github.com/flomesh-io/traffic-guru/apis/proxyprofile/v1alpha1"

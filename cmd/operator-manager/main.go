@@ -28,9 +28,9 @@ import (
 	"context"
 	"flag"
 	"fmt"
-	"github.com/flomesh-io/traffic-guru/controllers/cluster"
-	"github.com/flomesh-io/traffic-guru/controllers/gateway"
-	"github.com/flomesh-io/traffic-guru/controllers/proxyprofile"
+	clusterv1alpha1 "github.com/flomesh-io/traffic-guru/controllers/cluster/v1alpha1"
+	gatewayv1alpha2 "github.com/flomesh-io/traffic-guru/controllers/gateway/v1alpha2"
+	proxyprofilev1alpha1 "github.com/flomesh-io/traffic-guru/controllers/proxyprofile/v1alpha1"
 	flomeshadmission "github.com/flomesh-io/traffic-guru/pkg/admission"
 	"github.com/flomesh-io/traffic-guru/pkg/aggregator"
 	"github.com/flomesh-io/traffic-guru/pkg/certificate"
@@ -334,7 +334,7 @@ func registerCRDs(mgr manager.Manager, api *kube.K8sAPI, controlPlaneConfigStore
 }
 
 func registerProxyProfileCRD(mgr manager.Manager, api *kube.K8sAPI, controlPlaneConfigStore *config.Store) {
-	if err := (&proxyprofile.ProxyProfileReconciler{
+	if err := (&proxyprofilev1alpha1.ProxyProfileReconciler{
 		Client:                  mgr.GetClient(),
 		Scheme:                  mgr.GetScheme(),
 		Recorder:                mgr.GetEventRecorderFor("ProxyProfile"),
@@ -347,7 +347,7 @@ func registerProxyProfileCRD(mgr manager.Manager, api *kube.K8sAPI, controlPlane
 }
 
 func registerClusterCRD(mgr manager.Manager, api *kube.K8sAPI, controlPlaneConfigStore *config.Store) {
-	if err := (&cluster.ClusterReconciler{
+	if err := (&clusterv1alpha1.ClusterReconciler{
 		Client:                  mgr.GetClient(),
 		K8sAPI:                  api,
 		Scheme:                  mgr.GetScheme(),
@@ -360,7 +360,7 @@ func registerClusterCRD(mgr manager.Manager, api *kube.K8sAPI, controlPlaneConfi
 }
 
 func registerGatewayAPICRDs(mgr manager.Manager, api *kube.K8sAPI, controlPlaneConfigStore *config.Store) {
-	if err := (&gateway.GatewayReconciler{
+	if err := (&gatewayv1alpha2.GatewayReconciler{
 		Client:   mgr.GetClient(),
 		Scheme:   mgr.GetScheme(),
 		Recorder: mgr.GetEventRecorderFor("Gateway"),
@@ -370,7 +370,7 @@ func registerGatewayAPICRDs(mgr manager.Manager, api *kube.K8sAPI, controlPlaneC
 		os.Exit(1)
 	}
 
-	if err := (&gateway.GatewayClassReconciler{
+	if err := (&gatewayv1alpha2.GatewayClassReconciler{
 		Client:   mgr.GetClient(),
 		Scheme:   mgr.GetScheme(),
 		Recorder: mgr.GetEventRecorderFor("GatewayClass"),
@@ -380,7 +380,7 @@ func registerGatewayAPICRDs(mgr manager.Manager, api *kube.K8sAPI, controlPlaneC
 		os.Exit(1)
 	}
 
-	if err := (&gateway.ReferencePolicyReconciler{
+	if err := (&gatewayv1alpha2.ReferencePolicyReconciler{
 		Client:   mgr.GetClient(),
 		Scheme:   mgr.GetScheme(),
 		Recorder: mgr.GetEventRecorderFor("ReferencePolicy"),
@@ -390,7 +390,7 @@ func registerGatewayAPICRDs(mgr manager.Manager, api *kube.K8sAPI, controlPlaneC
 		os.Exit(1)
 	}
 
-	if err := (&gateway.HTTPRouteReconciler{
+	if err := (&gatewayv1alpha2.HTTPRouteReconciler{
 		Client:   mgr.GetClient(),
 		Scheme:   mgr.GetScheme(),
 		Recorder: mgr.GetEventRecorderFor("HTTPRoute"),
@@ -400,7 +400,7 @@ func registerGatewayAPICRDs(mgr manager.Manager, api *kube.K8sAPI, controlPlaneC
 		os.Exit(1)
 	}
 
-	if err := (&gateway.TLSRouteReconciler{
+	if err := (&gatewayv1alpha2.TLSRouteReconciler{
 		Client:   mgr.GetClient(),
 		Scheme:   mgr.GetScheme(),
 		Recorder: mgr.GetEventRecorderFor("TLSRoute"),
@@ -410,7 +410,7 @@ func registerGatewayAPICRDs(mgr manager.Manager, api *kube.K8sAPI, controlPlaneC
 		os.Exit(1)
 	}
 
-	if err := (&gateway.TCPRouteReconciler{
+	if err := (&gatewayv1alpha2.TCPRouteReconciler{
 		Client:   mgr.GetClient(),
 		Scheme:   mgr.GetScheme(),
 		Recorder: mgr.GetEventRecorderFor("TCPRoute"),
@@ -420,7 +420,7 @@ func registerGatewayAPICRDs(mgr manager.Manager, api *kube.K8sAPI, controlPlaneC
 		os.Exit(1)
 	}
 
-	if err := (&gateway.UDPRouteReconciler{
+	if err := (&gatewayv1alpha2.UDPRouteReconciler{
 		Client:   mgr.GetClient(),
 		Scheme:   mgr.GetScheme(),
 		Recorder: mgr.GetEventRecorderFor("UDPRoute"),

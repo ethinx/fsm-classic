@@ -27,7 +27,6 @@ package cache
 import (
 	"context"
 	"fmt"
-	cachectrl "github.com/flomesh-io/traffic-guru/pkg/cache/controller"
 	ingresspipy "github.com/flomesh-io/traffic-guru/pkg/ingress"
 	"github.com/flomesh-io/traffic-guru/pkg/kube"
 	corev1 "k8s.io/api/core/v1"
@@ -94,14 +93,14 @@ type IngressChangeTracker struct {
 	items               map[types.NamespacedName]*ingressChange
 	enrichIngressInfo   enrichIngressInfoFunc
 	portNumberToNameMap map[types.NamespacedName]map[int32]string
-	controllers         *cachectrl.Controllers
+	controllers         *Controllers
 	k8sAPI              *kube.K8sAPI
 	recorder            events.EventRecorder
 }
 
 type enrichIngressInfoFunc func(*networkingv1.IngressRule, *networkingv1.Ingress, *BaseIngressInfo) Route
 
-func NewIngressChangeTracker(k8sAPI *kube.K8sAPI, controllers *cachectrl.Controllers, recorder events.EventRecorder, enrichIngressInfo enrichIngressInfoFunc) *IngressChangeTracker {
+func NewIngressChangeTracker(k8sAPI *kube.K8sAPI, controllers *Controllers, recorder events.EventRecorder, enrichIngressInfo enrichIngressInfoFunc) *IngressChangeTracker {
 	return &IngressChangeTracker{
 		items:               make(map[types.NamespacedName]*ingressChange),
 		enrichIngressInfo:   enrichIngressInfo,

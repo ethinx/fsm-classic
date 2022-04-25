@@ -22,16 +22,27 @@
  * SOFTWARE.
  */
 
-package gateway
+package v1alpha2
 
 import (
 	"context"
 	"github.com/flomesh-io/traffic-guru/pkg/kube"
 	"k8s.io/apimachinery/pkg/runtime"
+	"k8s.io/apimachinery/pkg/types"
 	"k8s.io/client-go/tools/record"
+	"k8s.io/klog/v2"
 	ctrl "sigs.k8s.io/controller-runtime"
+	"sigs.k8s.io/controller-runtime/pkg/builder"
 	"sigs.k8s.io/controller-runtime/pkg/client"
+	"sigs.k8s.io/controller-runtime/pkg/handler"
+	"sigs.k8s.io/controller-runtime/pkg/predicate"
+	"sigs.k8s.io/controller-runtime/pkg/reconcile"
+	"sigs.k8s.io/controller-runtime/pkg/source"
 	gwv1alpha2 "sigs.k8s.io/gateway-api/apis/v1alpha2"
+)
+
+const (
+	GatewayV1alpha2Controller = "flomesh.io/gateway-v1alpha2-controller"
 )
 
 type GatewayReconciler struct {
@@ -53,5 +64,40 @@ func (r *GatewayReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ct
 func (r *GatewayReconciler) SetupWithManager(mgr ctrl.Manager) error {
 	return ctrl.NewControllerManagedBy(mgr).
 		For(&gwv1alpha2.Gateway{}).
+		Watches(
+			&source.Kind{Type: &gwv1alpha2.GatewayClass{}},
+			handler.EnqueueRequestsFromMapFunc(r.gatewayClassToGateways),
+			builder.WithPredicates(predicate.NewPredicateFuncs(func(obj client.Object) bool {
+				gatewayClass, ok := obj.(*gwv1alpha2.GatewayClass)
+				if !ok {
+					klog.Infof("unexpected object type: %T", obj)
+					return false
+				}
+
+				return gatewayClass.Spec.ControllerName == GatewayV1alpha2Controller
+			})),
+		).
 		Complete(r)
+}
+
+func (r *GatewayReconciler) gatewayClassToGateways(gatewayClass client.Object) []reconcile.Request {
+	var gateways gwv1alpha2.GatewayList
+	if err := r.Client.List(context.Background(), &gateways); err != nil {
+		klog.Error("error listing gateways")
+		return nil
+	}
+
+	var reconciles []reconcile.Request
+	for _, gw := range gateways.Items {
+		if string(gw.Spec.GatewayClassName) == gatewayClass.GetName() {
+			reconciles = append(reconciles, reconcile.Request{
+				NamespacedName: types.NamespacedName{
+					Namespace: gw.Namespace,
+					Name:      gw.Name,
+				},
+			})
+		}
+	}
+
+	return reconciles
 }

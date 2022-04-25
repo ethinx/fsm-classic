@@ -21,38 +21,37 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  */
-package proxyprofile
+
+package v1alpha2
 
 import (
-	//"context"
-	//"reflect"
-	//"time"
-
-	. "github.com/onsi/ginkgo"
-	//. "github.com/onsi/gomega"
-	//batchv1 "k8s.io/api/batch/v1"
-	//batchv1beta1 "k8s.io/api/batch/v1beta1"
-	//v1 "k8s.io/api/core/v1"
-	//metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
-	//"k8s.io/apimachinery/pkg/types"
-	//
-	//v1alpha1 "github.com/flomesh-io/traffic-guru/apis/proxyprofile/v1alpha1"
+	"context"
+	"github.com/flomesh-io/traffic-guru/pkg/kube"
+	"k8s.io/apimachinery/pkg/runtime"
+	"k8s.io/client-go/tools/record"
+	ctrl "sigs.k8s.io/controller-runtime"
+	"sigs.k8s.io/controller-runtime/pkg/client"
+	gwv1alpha2 "sigs.k8s.io/gateway-api/apis/v1alpha2"
 )
 
-var _ = Describe("ProxyProfile controller", func() {
+type HTTPRouteReconciler struct {
+	client.Client
+	K8sAPI   *kube.K8sAPI
+	Scheme   *runtime.Scheme
+	Recorder record.EventRecorder
+}
 
-	// Define utility constants for object names and testing timeouts/durations and intervals.
-	const (
-		ProxyProfileName = "test-proxy"
-		ProxyNamespace   = "default"
-	)
+//+kubebuilder:rbac:groups=gateway.networking.k8s.io,resources=httproutes,verbs=get;list;watch;create;update;patch;delete
+//+kubebuilder:rbac:groups=gateway.networking.k8s.io,resources=httproutes/status,verbs=get;update;patch
+//+kubebuilder:rbac:groups=gateway.networking.k8s.io,resources=httproutes/finalizers,verbs=update
 
-	Context("When updating Proxy", func() {
-		It("Should update Proxy Status. Increase active replica count.", func() {
-			By("By creating a new Proxy")
-			//ctx := context.Background()
-			// TODO: load tempalte and unmarshal to runtime object
-			//Expect(k8sClient.Create(ctx, cronJob)).Should(Succeed())
-		})
-	})
-})
+func (r *HTTPRouteReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.Result, error) {
+	return ctrl.Result{}, nil
+}
+
+// SetupWithManager sets up the controller with the Manager.
+func (r *HTTPRouteReconciler) SetupWithManager(mgr ctrl.Manager) error {
+	return ctrl.NewControllerManagedBy(mgr).
+		For(&gwv1alpha2.HTTPRoute{}).
+		Complete(r)
+}

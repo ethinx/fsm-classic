@@ -22,7 +22,7 @@
  * SOFTWARE.
  */
 
-package cluster
+package v1alpha1
 
 import (
 	"path/filepath"

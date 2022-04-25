@@ -22,36 +22,4 @@
  * SOFTWARE.
  */
 
-package gateway
-
-import (
-	"context"
-	"github.com/flomesh-io/traffic-guru/pkg/kube"
-	"k8s.io/apimachinery/pkg/runtime"
-	"k8s.io/client-go/tools/record"
-	ctrl "sigs.k8s.io/controller-runtime"
-	"sigs.k8s.io/controller-runtime/pkg/client"
-	gwv1alpha2 "sigs.k8s.io/gateway-api/apis/v1alpha2"
-)
-
-type TCPRouteReconciler struct {
-	client.Client
-	K8sAPI   *kube.K8sAPI
-	Scheme   *runtime.Scheme
-	Recorder record.EventRecorder
-}
-
-//+kubebuilder:rbac:groups=gateway.networking.k8s.io,resources=tcproutes,verbs=get;list;watch;create;update;patch;delete
-//+kubebuilder:rbac:groups=gateway.networking.k8s.io,resources=tcproutes/status,verbs=get;update;patch
-//+kubebuilder:rbac:groups=gateway.networking.k8s.io,resources=tcproutes/finalizers,verbs=update
-
-func (r *TCPRouteReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.Result, error) {
-	return ctrl.Result{}, nil
-}
-
-// SetupWithManager sets up the controller with the Manager.
-func (r *TCPRouteReconciler) SetupWithManager(mgr ctrl.Manager) error {
-	return ctrl.NewControllerManagedBy(mgr).
-		For(&gwv1alpha2.TCPRoute{}).
-		Complete(r)
-}
+package controller

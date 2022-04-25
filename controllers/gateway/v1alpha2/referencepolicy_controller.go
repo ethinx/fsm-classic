@@ -22,29 +22,36 @@
  * SOFTWARE.
  */
 
-package controller
+package v1alpha2
 
-import gwv1alpha2 "github.com/flomesh-io/traffic-guru/pkg/cache/controller/gateway/v1alpha2"
+import (
+	"context"
+	"github.com/flomesh-io/traffic-guru/pkg/kube"
+	"k8s.io/apimachinery/pkg/runtime"
+	"k8s.io/client-go/tools/record"
+	ctrl "sigs.k8s.io/controller-runtime"
+	"sigs.k8s.io/controller-runtime/pkg/client"
+	gwv1alpha2 "sigs.k8s.io/gateway-api/apis/v1alpha2"
+)
 
-type Controllers struct {
-	Service        *ServiceController
-	Endpoints      *EndpointsController
-	Ingressv1      *Ingressv1Controller
-	IngressClassv1 *IngressClassv1Controller
-	//ConfigMap      *ConfigMapController
-	GatewayApi *GatewayApiControllers
+type ReferencePolicyReconciler struct {
+	client.Client
+	K8sAPI   *kube.K8sAPI
+	Scheme   *runtime.Scheme
+	Recorder record.EventRecorder
 }
 
-type GatewayApiControllers struct {
-	V1alpha2 *GatewayApiV1alpha2Controllers
+//+kubebuilder:rbac:groups=gateway.networking.k8s.io,resources=referencepolicies,verbs=get;list;watch;create;update;patch;delete
+//+kubebuilder:rbac:groups=gateway.networking.k8s.io,resources=referencepolicies/status,verbs=get;update;patch
+//+kubebuilder:rbac:groups=gateway.networking.k8s.io,resources=referencepolicies/finalizers,verbs=update
+
+func (r *ReferencePolicyReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.Result, error) {
+	return ctrl.Result{}, nil
 }
 
-type GatewayApiV1alpha2Controllers struct {
-	Gateway         *gwv1alpha2.GatewayController
-	GatewayClass    *gwv1alpha2.GatewayClassController
-	HTTPRoute       *gwv1alpha2.HTTPRouteController
-	ReferencePolicy *gwv1alpha2.ReferencePolicyController
-	TCPRoute        *gwv1alpha2.TCPRouteController
-	TLSRoute        *gwv1alpha2.TLSRouteController
-	UDPRoute        *gwv1alpha2.UDPRouteController
+// SetupWithManager sets up the controller with the Manager.
+func (r *ReferencePolicyReconciler) SetupWithManager(mgr ctrl.Manager) error {
+	return ctrl.NewControllerManagedBy(mgr).
+		For(&gwv1alpha2.ReferencePolicy{}).
+		Complete(r)
 }
