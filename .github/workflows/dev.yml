@@ -9,8 +9,7 @@ on:
 jobs:
   push_to_registry:
     name: Build and Push Docker image to Docker Hub - DEV
-#    runs-on: ubuntu-20.04
-    runs-on: self-hosted
+    runs-on: ubuntu-20.04
     strategy:
       max-parallel: 5
       matrix:
