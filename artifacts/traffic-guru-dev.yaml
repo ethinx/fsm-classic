@@ -1177,6 +1177,7 @@ data:
       "service-aggregator-addr": "service-aggregator.flomesh.svc:6767",
       "default-pipy-image": "flomesh/pipy:0.30.0-100",
       "proxy-init-image": "flomesh/traffic-guru-proxy-init:dev",
+      "wait-for-it-image": "flomesh/wait-for-it:1.0.0",
 
       "certificate": {
         "manager": "archon"
@@ -1392,8 +1393,7 @@ spec:
         image: flomesh/traffic-guru-bootstrap:dev
         imagePullPolicy: Always
         livenessProbe:
-          initialDelaySeconds: 10
-          periodSeconds: 10
+          periodSeconds: 20
           tcpSocket:
             port: 6767
         name: bootstrap
@@ -1401,7 +1401,6 @@ spec:
         - containerPort: 6767
           name: aggregator
         readinessProbe:
-          initialDelaySeconds: 30
           periodSeconds: 20
           tcpSocket:
             port: 6767
@@ -1412,6 +1411,12 @@ spec:
           requests:
             cpu: 200m
             memory: 200Mi
+        startupProbe:
+          failureThreshold: 10
+          initialDelaySeconds: 15
+          periodSeconds: 10
+          tcpSocket:
+            port: 6767
         volumeMounts:
         - mountPath: /repo
           name: shared-repo
@@ -1640,8 +1645,7 @@ spec:
         image: flomesh/pipy:0.30.0-100
         imagePullPolicy: IfNotPresent
         livenessProbe:
-          initialDelaySeconds: 10
-          periodSeconds: 10
+          periodSeconds: 20
           tcpSocket:
             port: 6060
         name: repo
@@ -1649,7 +1653,6 @@ spec:
         - containerPort: 6060
           name: repo
         readinessProbe:
-          initialDelaySeconds: 30
           periodSeconds: 20
           tcpSocket:
             port: 6060
@@ -1660,6 +1663,12 @@ spec:
           requests:
             cpu: 100m
             memory: 20M
+        startupProbe:
+          failureThreshold: 10
+          initialDelaySeconds: 5
+          periodSeconds: 10
+          tcpSocket:
+            port: 6060
       serviceAccountName: traffic-guru
       terminationGracePeriodSeconds: 30
 ---

@@ -47,6 +47,7 @@ type MeshConfig struct {
 	ServiceAggregatorAddr string           `json:"service-aggregator-addr,omitempty"`
 	DefaultPipyImage      string           `json:"default-pipy-image,omitempty"`
 	ProxyInitImage        string           `json:"proxy-init-image,omitempty"`
+	WaitForItImage        string           `json:"wait-for-it-image,omitempty"`
 	Certificate           Certificate      `json:"certificate,omitempty"`
 	Cluster               Cluster          `json:"cluster,omitempty"`
 	ClusterConnector      ClusterConnector `json:"cluster-connector,omitempty"`

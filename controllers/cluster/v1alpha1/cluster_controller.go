@@ -43,6 +43,7 @@ import (
 	"k8s.io/apimachinery/pkg/util/intstr"
 	"k8s.io/client-go/tools/record"
 	"k8s.io/klog/v2"
+	"net"
 	ctrl "sigs.k8s.io/controller-runtime"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/controller/controllerutil"
@@ -210,6 +211,7 @@ func (r *ClusterReconciler) upsertDeployment(ctx context.Context, cluster *clust
 					Labels: labels,
 				},
 				Spec: corev1.PodSpec{
+					InitContainers:     r.createInitContainers(cluster),
 					Containers:         r.createContainers(cluster),
 					Volumes:            r.createVolumes(secret),
 					ServiceAccountName: mc.ClusterConnector.ServiceAccountName,
@@ -222,6 +224,22 @@ func (r *ClusterReconciler) upsertDeployment(ctx context.Context, cluster *clust
 	result, err := ctrl.CreateOrUpdate(ctx, r.Client, deployment, func() error { return nil })
 
 	return deployment, result, err
+}
+
+func (r *ClusterReconciler) createInitContainers(cluster *clusterv1alpha1.Cluster) []corev1.Container {
+	mc := r.ControlPlaneConfigStore.MeshConfig
+
+	host, port, _ := net.SplitHostPort(mc.ServiceAggregatorAddr)
+	cmd := fmt.Sprintf("/wait-for-it.sh --strict --timeout=0 --host=%s --port=%s -- echo 'AGGREGATOR IS READY!'", host, port)
+
+	container := corev1.Container{
+		Name:            "wait-aggregator",
+		Image:           mc.WaitForItImage,
+		ImagePullPolicy: util.ImagePullPolicyByTag(mc.WaitForItImage),
+		Command:         []string{"bash", "-c", cmd},
+	}
+
+	return []corev1.Container{container}
 }
 
 func (r *ClusterReconciler) createContainers(cluster *clusterv1alpha1.Cluster) []corev1.Container {
