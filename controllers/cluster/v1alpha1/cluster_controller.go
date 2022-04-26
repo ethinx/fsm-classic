@@ -269,8 +269,8 @@ func (r *ClusterReconciler) createContainers(cluster *clusterv1alpha1.Cluster) [
 			},
 		},
 		LivenessProbe: &corev1.Probe{
-			InitialDelaySeconds: 15,
-			PeriodSeconds:       30,
+			InitialDelaySeconds: 10,
+			PeriodSeconds:       10,
 			Handler: corev1.Handler{
 				HTTPGet: &corev1.HTTPGetAction{
 					Path: "/healthz",
@@ -279,8 +279,8 @@ func (r *ClusterReconciler) createContainers(cluster *clusterv1alpha1.Cluster) [
 			},
 		},
 		ReadinessProbe: &corev1.Probe{
-			InitialDelaySeconds: 5,
-			PeriodSeconds:       10,
+			InitialDelaySeconds: 30,
+			PeriodSeconds:       20,
 			Handler: corev1.Handler{
 				HTTPGet: &corev1.HTTPGetAction{
 					Path: "/readyz",
