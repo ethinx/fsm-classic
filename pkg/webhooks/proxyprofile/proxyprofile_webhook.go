@@ -84,8 +84,6 @@ type ProxyProfileDefaulter struct {
 	k8sAPI *kube.K8sAPI
 }
 
-//var _ webhooks.Defaulter = &ProxyProfileDefaulter{}
-
 func NewDefaulter(k8sAPI *kube.K8sAPI) *ProxyProfileDefaulter {
 	return &ProxyProfileDefaulter{
 		k8sAPI: k8sAPI,
@@ -174,8 +172,6 @@ func (w *ProxyProfileValidator) ValidateUpdate(oldObj, obj interface{}) error {
 func (w *ProxyProfileValidator) ValidateDelete(obj interface{}) error {
 	return nil
 }
-
-//var _ webhooks.Validator = &ProxyProfileValidator{}
 
 func NewValidator(k8sAPI *kube.K8sAPI) *ProxyProfileValidator {
 	return &ProxyProfileValidator{

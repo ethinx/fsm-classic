@@ -70,7 +70,6 @@ import (
 	_ "k8s.io/client-go/plugin/pkg/client/auth"
 
 	flomeshscheme "github.com/flomesh-io/traffic-guru/pkg/generated/clientset/versioned/scheme"
-	"github.com/kelseyhightower/envconfig"
 	"k8s.io/apimachinery/pkg/runtime"
 	utilruntime "k8s.io/apimachinery/pkg/util/runtime"
 	clientgoscheme "k8s.io/client-go/kubernetes/scheme"
@@ -173,18 +172,6 @@ func loadManagerOptions(configFile string) ctrl.Options {
 	}
 
 	return options
-}
-
-func getManagerEnvConfig() config.ManagerEnvironmentConfiguration {
-	var cfg config.ManagerEnvironmentConfiguration
-
-	err := envconfig.Process("FLOMESH", &cfg)
-	if err != nil {
-		klog.Error(err, "unable to load the configuration from environment")
-		os.Exit(1)
-	}
-
-	return cfg
 }
 
 func newManager(kubeconfig *rest.Config, options ctrl.Options) manager.Manager {

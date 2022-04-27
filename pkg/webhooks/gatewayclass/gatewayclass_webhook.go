@@ -82,8 +82,6 @@ type GatewayClassDefaulter struct {
 	k8sAPI *kube.K8sAPI
 }
 
-//var _ webhooks.Defaulter = &GatewayClassDefaulter{}
-
 func NewDefaulter(k8sAPI *kube.K8sAPI) *GatewayClassDefaulter {
 	return &GatewayClassDefaulter{
 		k8sAPI: k8sAPI,
@@ -131,8 +129,6 @@ func (w *GatewayClassValidator) ValidateUpdate(oldObj, obj interface{}) error {
 func (w *GatewayClassValidator) ValidateDelete(obj interface{}) error {
 	return nil
 }
-
-//var _ webhooks.Validator = &GatewayClassValidator{}
 
 func NewValidator(k8sAPI *kube.K8sAPI) *GatewayClassValidator {
 	return &GatewayClassValidator{

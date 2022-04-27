@@ -82,8 +82,6 @@ type TLSRouteDefaulter struct {
 	k8sAPI *kube.K8sAPI
 }
 
-//var _ webhooks.Defaulter = &TLSRouteDefaulter{}
-
 func NewDefaulter(k8sAPI *kube.K8sAPI) *TLSRouteDefaulter {
 	return &TLSRouteDefaulter{
 		k8sAPI: k8sAPI,
@@ -131,8 +129,6 @@ func (w *TLSRouteValidator) ValidateUpdate(oldObj, obj interface{}) error {
 func (w *TLSRouteValidator) ValidateDelete(obj interface{}) error {
 	return nil
 }
-
-//var _ webhooks.Validator = &TLSRouteValidator{}
 
 func NewValidator(k8sAPI *kube.K8sAPI) *TLSRouteValidator {
 	return &TLSRouteValidator{

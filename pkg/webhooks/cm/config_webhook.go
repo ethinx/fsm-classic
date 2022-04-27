@@ -92,8 +92,6 @@ type ConfigMapDefaulter struct {
 	k8sAPI *kube.K8sAPI
 }
 
-//var _ webhooks.Defaulter = &ConfigMapDefaulter{}
-
 func isNotWatchedConfigmap(cm *corev1.ConfigMap) bool {
 	klog.V(5).Infof("Configmap namespace = %q, name = %q.", cm.Namespace, cm.Name)
 	return cm.Namespace != commons.DefaultFlomeshNamespace || !commons.DefaultWatchedConfigMaps.Has(cm.Name)
@@ -180,8 +178,6 @@ func (w *ConfigMapValidator) ValidateDelete(obj interface{}) error {
 
 	return nil
 }
-
-//var _ webhooks.Validator = &ConfigMapValidator{}
 
 func NewValidator(k8sAPI *kube.K8sAPI) *ConfigMapValidator {
 	return &ConfigMapValidator{

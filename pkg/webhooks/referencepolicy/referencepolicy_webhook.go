@@ -82,8 +82,6 @@ type ReferencePolicyDefaulter struct {
 	k8sAPI *kube.K8sAPI
 }
 
-//var _ webhooks.Defaulter = &ReferencePolicyDefaulter{}
-
 func NewDefaulter(k8sAPI *kube.K8sAPI) *ReferencePolicyDefaulter {
 	return &ReferencePolicyDefaulter{
 		k8sAPI: k8sAPI,
@@ -131,8 +129,6 @@ func (w *ReferencePolicyValidator) ValidateUpdate(oldObj, obj interface{}) error
 func (w *ReferencePolicyValidator) ValidateDelete(obj interface{}) error {
 	return nil
 }
-
-//var _ webhooks.Validator = &ReferencePolicyValidator{}
 
 func NewValidator(k8sAPI *kube.K8sAPI) *ReferencePolicyValidator {
 	return &ReferencePolicyValidator{

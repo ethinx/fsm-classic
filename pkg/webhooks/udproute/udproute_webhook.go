@@ -82,8 +82,6 @@ type UDPRouteDefaulter struct {
 	k8sAPI *kube.K8sAPI
 }
 
-//var _ webhooks.Defaulter = &UDPRouteDefaulter{}
-
 func NewDefaulter(k8sAPI *kube.K8sAPI) *UDPRouteDefaulter {
 	return &UDPRouteDefaulter{
 		k8sAPI: k8sAPI,
@@ -131,8 +129,6 @@ func (w *UDPRouteValidator) ValidateUpdate(oldObj, obj interface{}) error {
 func (w *UDPRouteValidator) ValidateDelete(obj interface{}) error {
 	return nil
 }
-
-//var _ webhooks.Validator = &UDPRouteValidator{}
 
 func NewValidator(k8sAPI *kube.K8sAPI) *UDPRouteValidator {
 	return &UDPRouteValidator{

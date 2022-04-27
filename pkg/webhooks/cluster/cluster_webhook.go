@@ -83,8 +83,6 @@ type ClusterDefaulter struct {
 	k8sAPI *kube.K8sAPI
 }
 
-//var _ webhooks.Defaulter = &ClusterDefaulter{}
-
 func NewDefaulter(k8sAPI *kube.K8sAPI) *ClusterDefaulter {
 	return &ClusterDefaulter{
 		k8sAPI: k8sAPI,
@@ -150,8 +148,6 @@ func (w *ClusterValidator) ValidateUpdate(oldObj, obj interface{}) error {
 func (w *ClusterValidator) ValidateDelete(obj interface{}) error {
 	return nil
 }
-
-//var _ webhooks.Validator = &ClusterValidator{}
 
 func NewValidator(k8sAPI *kube.K8sAPI) *ClusterValidator {
 	return &ClusterValidator{

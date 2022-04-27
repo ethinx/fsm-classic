@@ -57,7 +57,6 @@ type ClusterReconciler struct {
 	Scheme                  *runtime.Scheme
 	Recorder                record.EventRecorder
 	ControlPlaneConfigStore *config.Store
-	//ManagerEnvConfig        config.ManagerEnvironmentConfiguration
 }
 
 // +kubebuilder:rbac:groups=flomesh.io,resources=clusters,verbs=get;list;watch;create;update;patch;delete
@@ -257,11 +256,6 @@ func (r *ClusterReconciler) createContainers(cluster *clusterv1alpha1.Cluster) [
 				Name:      commons.ClusterConnectorSecretVolumeName,
 				MountPath: mc.ClusterConnector.SecretMountPath,
 			},
-			//{
-			//	Name:      "cert",
-			//	MountPath: "/tmp/k8s-webhook-server/serving-certs",
-			//	ReadOnly:  true,
-			//},
 			{
 				Name:      commons.ClusterConnectorConfigmapVolumeName,
 				MountPath: fmt.Sprintf("/%s", mc.ClusterConnector.ConfigFile),
@@ -303,44 +297,18 @@ func (r *ClusterReconciler) createContainers(cluster *clusterv1alpha1.Cluster) [
 }
 
 func (r *ClusterReconciler) getCommand() []string {
-	//_, tag, _, _ := util.ParseImageName(r.ControlPlaneConfigStore.MeshConfig.ClusterConnector.DefaultImage)
-	//
-	//if tag == "dev" {
-	//	return []string{
-	//		"/dlv",
-	//	}
-	//} else {
 	return []string{
 		"/cluster-connector",
 	}
-	//}
 }
 
 func (r *ClusterReconciler) getArgs() []string {
 	mc := r.ControlPlaneConfigStore.MeshConfig
-	//_, tag, _, _ := util.ParseImageName(mc.ClusterConnector.DefaultImage)
-	//
-	//if tag == "dev" {
-	//	return []string{
-	//		"--listen=:30607",
-	//		"--headless=true",
-	//		"--api-version=2",
-	//		"--accept-multiclient",
-	//		"--log=true",
-	//		"--log-output=debugger,debuglineerr,gdbwire,lldbout,rpc",
-	//		"exec",
-	//		"--continue",
-	//		"/cluster-connector",
-	//		"--",
-	//		fmt.Sprintf("--v=%d", mc.ClusterConnector.LogLevel),
-	//		fmt.Sprintf("--config=%s", mc.ClusterConnector.ConfigFile),
-	//	}
-	//} else {
+
 	return []string{
 		fmt.Sprintf("--v=%d", mc.ClusterConnector.LogLevel),
 		fmt.Sprintf("--config=%s", mc.ClusterConnector.ConfigFile),
 	}
-	//}
 }
 
 func (r *ClusterReconciler) envs(cluster *clusterv1alpha1.Cluster) []corev1.EnvVar {
@@ -371,10 +339,6 @@ func (r *ClusterReconciler) envs(cluster *clusterv1alpha1.Cluster) []corev1.EnvV
 			Name:  commons.ClusterConnectorModeEnvName,
 			Value: string(cluster.Spec.Mode),
 		},
-		//{
-		//	Name:  commons.FlomeshServiceAggregatorAddressEnvName,
-		//	Value: mc.ServiceAggregatorAddr,
-		//},
 	}
 
 	// set the KUBECONFIG env
@@ -410,16 +374,6 @@ func (r *ClusterReconciler) createVolumes(secret *corev1.Secret) []corev1.Volume
 		},
 	}
 
-	//certVolume := corev1.Volume{
-	//	Name: "cert",
-	//	VolumeSource: corev1.VolumeSource{
-	//		Secret: &corev1.SecretVolumeSource{
-	//			SecretName:  "webhook-server-cert",
-	//			DefaultMode: defaultMode(),
-	//		},
-	//	},
-	//}
-
 	cmVolume := corev1.Volume{
 		Name: commons.ClusterConnectorConfigmapVolumeName,
 		VolumeSource: corev1.VolumeSource{
@@ -431,11 +385,6 @@ func (r *ClusterReconciler) createVolumes(secret *corev1.Secret) []corev1.Volume
 		},
 	}
 	return []corev1.Volume{secretVolume, cmVolume}
-}
-
-func defaultMode() *int32 {
-	var mode int32 = 420
-	return &mode
 }
 
 func clusterLabels(cluster *clusterv1alpha1.Cluster) map[string]string {

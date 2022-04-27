@@ -75,35 +75,19 @@ func (p *NamespaceEventHandler) Create(evt event.CreateEvent, q workqueue.RateLi
 	klog.V(7).Infof("NamespaceEventHandler - Create(), event=%#v", evt.Object)
 
 	namespace := evt.Object.GetName()
-
-	// ns is not labled as flomesh.io/inject=true, which means no interest for injection
-	//if !injector.IsNamespaceProxyInjectLabelEnabled(p.Client, namespace) {
-	//	return
-	//}
 	p.notifyProxyProfileReconciler(namespace, q)
 }
 
 func (p *NamespaceEventHandler) Update(evt event.UpdateEvent, q workqueue.RateLimitingInterface) {
 	klog.V(7).Infof("NamespaceEventHandler - Update(), event=%#v", evt)
 
-	//nsOld := evt.ObjectOld.(*corev1.Namespace)
 	nsNew := evt.ObjectNew.(*corev1.Namespace)
-	//if nsOld.ResourceVersion == nsNew.ResourceVersion {
-	//	return
-	//}
-	//klog.V(3).Infof("Received Namespace %s UpdateEvent", nsNew.GetName())
-	//
-	//oldProxyInjectLabel := getProxyInjectNamespaceLabel(nsOld)
-	//newProxyInjectLabel := getProxyInjectNamespaceLabel(nsNew)
-	//
-	//if oldProxyInjectLabel != newProxyInjectLabel {
 	p.notifyProxyProfileReconciler(nsNew.GetName(), q)
-	//}
 }
 
 func (p *NamespaceEventHandler) Delete(evt event.DeleteEvent, q workqueue.RateLimitingInterface) {
 	klog.V(7).Infof("NamespaceEventHandler - Delete(), event=%#v", evt)
-	// need to ProxyProfile reconciler to update status
+	// need ProxyProfile reconciler to update status
 	p.notifyProxyProfileReconciler(evt.Object.GetName(), q)
 }
 
@@ -148,7 +132,7 @@ func (p *NamespaceEventHandler) notifyProxyProfileReconciler(namespace string, q
 }
 
 func (p *NamespaceEventHandler) Generic(evt event.GenericEvent, q workqueue.RateLimitingInterface) {
-	//log.Infof("NamespaceEventHandler - Generic(), event=%#v", evt)
+
 }
 
 func getProxyInjectNamespaceLabel(ns *corev1.Namespace) string {

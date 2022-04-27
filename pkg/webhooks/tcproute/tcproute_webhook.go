@@ -82,8 +82,6 @@ type TCPRouteDefaulter struct {
 	k8sAPI *kube.K8sAPI
 }
 
-//var _ webhooks.Defaulter = &TCPRouteDefaulter{}
-
 func NewDefaulter(k8sAPI *kube.K8sAPI) *TCPRouteDefaulter {
 	return &TCPRouteDefaulter{
 		k8sAPI: k8sAPI,
@@ -131,8 +129,6 @@ func (w *TCPRouteValidator) ValidateUpdate(oldObj, obj interface{}) error {
 func (w *TCPRouteValidator) ValidateDelete(obj interface{}) error {
 	return nil
 }
-
-//var _ webhooks.Validator = &TCPRouteValidator{}
 
 func NewValidator(k8sAPI *kube.K8sAPI) *TCPRouteValidator {
 	return &TCPRouteValidator{

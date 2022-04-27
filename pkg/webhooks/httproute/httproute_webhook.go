@@ -82,8 +82,6 @@ type HTTPRouteDefaulter struct {
 	k8sAPI *kube.K8sAPI
 }
 
-//var _ webhooks.Defaulter = &HTTPRouteDefaulter{}
-
 func NewDefaulter(k8sAPI *kube.K8sAPI) *HTTPRouteDefaulter {
 	return &HTTPRouteDefaulter{
 		k8sAPI: k8sAPI,
@@ -131,8 +129,6 @@ func (w *HTTPRouteValidator) ValidateUpdate(oldObj, obj interface{}) error {
 func (w *HTTPRouteValidator) ValidateDelete(obj interface{}) error {
 	return nil
 }
-
-//var _ webhooks.Validator = &HTTPRouteValidator{}
 
 func NewValidator(k8sAPI *kube.K8sAPI) *HTTPRouteValidator {
 	return &HTTPRouteValidator{
